@@ -252,7 +252,7 @@ class comtrade:
         return pd.DataFrame(country_list)
     
 
-    def get_data(self, period, commodity_code, name_output):
+    def get_data(self, period, commodity_code, comtrade_api, typeGoods = 'C', frequency = 'A', flows = 'M,X', name_output = 'comtradedata.csv'):
 
         # List of countries
         countries = self.get_country_code()
@@ -267,12 +267,12 @@ class comtrade:
 
                 url = "https://comtradeapi.un.org/data/v1/get/"
                 
-                trade_type = "C" # commodities
-                frequency = "A" # annual
+                trade_type = typeGoods # commodities
+                frequency = frequency # annual
                 trade_classification_type = "HS" 
                 reporter_code = list_codes_country
                 partner_code = list_codes_country
-                flow_code = "M,X"
+                flow_code = flows
                 customs_code = "C01"
 
                 url = url + trade_type + "/" + frequency + "/" + trade_classification_type + "?reporterCode=" + reporter_code +\
@@ -282,8 +282,7 @@ class comtrade:
                 hdr ={
                 # Request headers
                 'Cache-Control': 'no-cache',
-                # 'Ocp-Apim-Subscription-Key': '6e5dcb09f95d466bb29dcbd2bfb7405f',
-                'Ocp-Apim-Subscription-Key': '9fd596513bdc40b58059459772916810',
+                'Ocp-Apim-Subscription-Key': comtrade_api,
                 }
 
                 req = urllib.request.Request(url, headers=hdr)
@@ -296,12 +295,12 @@ class comtrade:
 
             except Exception as e:
                 print(e)
-
+            
             # Parse into pandas
             my_json = X.decode('utf8').replace("'", '"')
             data = json.loads(my_json)
             df = pd.DataFrame.from_dict(data["data"])
-
+            
             # Rename columns
             df = df[['refYear','reporterCode', 'primaryValue','partnerCode','flowCode']].rename(columns={"refYear":"year", "primaryValue": "value"})
 
